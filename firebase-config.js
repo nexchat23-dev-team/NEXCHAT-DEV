@@ -1,8 +1,8 @@
-
 // firebase-config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCfT1UFmoGSAanbIDTLYGeFfPE7uCa74Fw",
@@ -19,6 +19,7 @@ const app = initializeApp(firebaseConfig);
 // Auth and Firestore exports for other modules
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 
 // Enable offline persistence
 enableIndexedDbPersistence(db)
@@ -29,12 +30,3 @@ enableIndexedDbPersistence(db)
       console.warn('Persistence not supported in this browser');
     }
   });
-
-// Backwards-compatible global (some legacy code may rely on window.auth)
-window.auth = auth;
-window.db = db;
-
-
-
-
-

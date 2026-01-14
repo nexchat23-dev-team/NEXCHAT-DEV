@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>☄️ NEXCHAT Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin-dashboard.css">
+</head>
+<body>
+
+<div class="admin-container">
+  
+  <!-- Admin Header -->
+  <header class="admin-header">
+    <div class="header-content">
+      <h1>☄️ NEXCHAT Admin Dashboard</h1>
+      <div class="header-info">
+        <span id="adminName" class="admin-user">Admin</span>
+        <button id="logoutBtn" class="logout-btn">🚪 Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Admin Navigation -->
+  <nav class="admin-nav">
+    <button class="nav-btn active" data-tab="overview">📊 Overview</button>
+    <button class="nav-btn" data-tab="users">👥 Users</button>
+    <button class="nav-btn" data-tab="reports">📋 Reports</button>
+    <button class="nav-btn" data-tab="blocked">🚫 Blocked Users</button>
+    <button class="nav-btn" data-tab="admins">👑 Manage Admins</button>
+    <button class="nav-btn" data-tab="settings">⚙️ Settings</button>
+  </nav>
+
+  <!-- Admin Content -->
+  <main class="admin-content">
+
+    <!-- OVERVIEW TAB -->
+    <section id="overview" class="tab-content active">
+      <h2>Dashboard Overview</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <span class="stat-label">Total Users</span>
+            <span id="totalUsers" class="stat-value">0</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📨</div>
+          <div class="stat-info">
+            <span class="stat-label">Total Messages</span>
+            <span id="totalMessages" class="stat-value">0</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📋</div>
+          <div class="stat-info">
+            <span class="stat-label">Pending Reports</span>
+            <span id="pendingReports" class="stat-value">0</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🚫</div>
+          <div class="stat-info">
+            <span class="stat-label">Blocked Users</span>
+            <span id="blockedCount" class="stat-value">0</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- USERS TAB -->
+    <section id="users" class="tab-content">
+      <h2>User Management</h2>
+      <div class="search-box">
+        <input type="text" id="userSearch" placeholder="Search users by username or email..." class="search-input">
+        <button class="search-btn">🔍</button>
+      </div>
+      <div class="users-table-container">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Profile</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr class="loading">
+              <td colspan="6">Loading users...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- REPORTS TAB -->
+    <section id="reports" class="tab-content">
+      <h2>User Reports</h2>
+      <div class="filter-box">
+        <select id="reportFilter" class="filter-select">
+          <option value="all">All Reports</option>
+          <option value="pending">Pending</option>
+          <option value="reviewed">Reviewed</option>
+          <option value="resolved">Resolved</option>
+        </select>
+      </div>
+      <div class="reports-container" id="reportsContainer">
+        <div class="loading-message">Loading reports...</div>
+      </div>
+    </section>
+
+    <!-- BLOCKED USERS TAB -->
+    <section id="blocked" class="tab-content">
+      <h2>Blocked Users</h2>
+      <div class="blocked-users-container" id="blockedUsersContainer">
+        <div class="loading-message">Loading blocked users...</div>
+      </div>
+    </section>
+
+    <!-- SETTINGS TAB -->
+    <section id="settings" class="tab-content">
+      <h2>Admin Settings</h2>
+      <div class="settings-panel">
+        <div class="setting-item">
+          <h3>System Status</h3>
+          <p id="systemStatus" class="status-text">System is online</p>
+          <button class="setting-btn">View System Logs</button>
+        </div>
+        <div class="setting-item">
+          <h3>Backup Data</h3>
+          <p>Export all chat data and user information</p>
+          <button class="setting-btn">Download Backup</button>
+        </div>
+        <div class="setting-item">
+          <h3>Clear Cache</h3>
+          <p>Clear application cache and temporary files</p>
+          <button class="setting-btn danger">Clear Cache</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MANAGE ADMINS TAB -->
+    <section id="admins" class="tab-content">
+      <h2>👑 Manage Administrator Accounts</h2>
+      
+      <!-- Add New Admin Form -->
+      <div class="settings-section">
+        <div class="setting-item">
+          <h3>➕ Create New Admin Account</h3>
+          <div class="form-group">
+            <label>Admin Email (Gmail)</label>
+            <input type="email" id="newAdminEmail" placeholder="admin@gmail.com" class="input-field">
+            
+            <label>Admin Password (Optional - Generate if empty)</label>
+            <input type="password" id="newAdminPassword" placeholder="Leave empty to auto-generate" class="input-field">
+            
+            <label>Full Name</label>
+            <input type="text" id="newAdminName" placeholder="Admin name" class="input-field">
+            
+            <div class="button-group">
+              <button id="generatePasswordBtn" class="setting-btn">🔑 Generate Password</button>
+              <button id="createAdminBtn" class="setting-btn success">✅ Create Admin</button>
+            </div>
+          </div>
+          <div id="generatedPassword" class="password-display" style="display: none;">
+            <p><strong>Generated Password:</strong></p>
+            <div class="password-box">
+              <span id="passwordText"></span>
+              <button id="copyPasswordBtn" class="copy-btn">📋 Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Existing Admins List -->
+      <div class="settings-section">
+        <h3>Current Admin Accounts</h3>
+        <div id="adminsList" class="admins-list">
+          <p>Loading admins...</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- User Action Modal -->
+<div id="userActionModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>User Actions</h3>
+      <button class="close-btn" onclick="document.getElementById('userActionModal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="userActionInfo"></div>
+      <div class="action-buttons">
+        <button id="viewUserBtn" class="action-btn view-btn">👁️ View Profile</button>
+        <button id="blockUserBtn" class="action-btn warn-btn">🚫 Block User</button>
+        <button id="unblockUserBtn" class="action-btn success-btn" style="display: none;">✅ Unblock User</button>
+        <button id="deleteUserBtn" class="action-btn danger-btn">🗑️ Delete Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Report Details Modal -->
+<div id="reportModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Report Details</h3>
+      <button class="close-btn" onclick="document.getElementById('reportModal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="reportDetails"></div>
+      <div class="action-buttons">
+        <button id="markResolvedBtn" class="action-btn success-btn">✅ Mark Resolved</button>
+        <button id="blockReporterBtn" class="action-btn warn-btn">🚫 Block Reporter</button>
+        <button id="blockReportedBtn" class="action-btn danger-btn">⛔ Ban Reported User</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notification -->
+<div id="adminNotification" class="notification" style="display: none;"></div>
+
+<script type="module" src="admin-dashboard.js"></script>
+</body>
+</html>

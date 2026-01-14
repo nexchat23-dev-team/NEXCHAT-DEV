@@ -3,29 +3,372 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>☄️ NEXCHAT Login ☄️</title>
+  <title>☄️ NEXCHAT Admin Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="login.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #0b0b0b 0%, #1a0033 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .login-container {
+      width: 90%;
+      max-width: 400px;
+      padding: 40px 30px;
+      border-radius: 15px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.85);
+      border: 2px solid #00ff66;
+      box-shadow: 0 0 30px rgba(0, 255, 102, 0.3);
+    }
+
+    h1 {
+      color: #00ff66;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px #00ff66;
+      font-size: 1.8rem;
+    }
+
+    .subtitle {
+      color: #888;
+      margin-bottom: 30px;
+      font-size: 0.9rem;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      color: #00ff66;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #00ff66;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      border-radius: 6px;
+      outline: none;
+      transition: 0.3s;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    input:focus {
+      background: rgba(0, 255, 102, 0.1);
+      box-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
+    }
+
+    input:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 25px;
+      border: none;
+      background: linear-gradient(90deg, #00ff66, #00d4ff);
+      color: #000;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .login-btn:hover {
+      box-shadow: 0 0 20px rgba(0, 255, 102, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .login-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #result {
+      margin-top: 20px;
+      min-height: 20px;
+      font-weight: bold;
+    }
+
+    .error {
+      color: #ff3c3c;
+    }
+
+    .success {
+      color: #00ff66;
+    }
+
+    .warning {
+      color: #ffc107;
+    }
+
+    .admin-note {
+      background: rgba(0, 255, 102, 0.1);
+      border: 1px solid #00ff66;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 20px;
+      color: #00ff66;
+      font-size: 0.85rem;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .attempt-info {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 15px;
+    }
+  </style>
 </head>
 <body>
 
 <div class="login-container">
-  <img src="logo.jpg" class="logo" alt="NEXCHAT Logo">
-  <h2>.... WELCOME TO ☄️ NEXCHAT ☄️ ....</h2>
+  <h1>☄️ Admin Login</h1>
+  <p class="subtitle">NEXCHAT Administration Panel</p>
 
-  <form id="loginForm">
-    <input type="email" id="loginEmail" placeholder="Email" required>
-    <input type="password" id="loginPassword" placeholder="Password" required>
-    <button type="submit" class="auth-btn">Login</button>
+  <div class="admin-note">
+    ⚠️ <strong>Admin Only:</strong> This is the admin login portal. Only authorized administrators can access this area. Unauthorized access attempts are logged.
+  </div>
+
+  <form id="adminLoginForm">
+    <div class="form-group">
+      <label for="adminUsername">Username:</label>
+      <input type="text" id="adminUsername" placeholder="admin" required>
+    </div>
+    <div class="form-group">
+      <label for="adminPassword">Password:</label>
+      <input type="password" id="adminPassword" placeholder="••••••••" required>
+    </div>
+    <button type="submit" class="login-btn" id="loginBtn">🔐 Login as Admin</button>
   </form>
 
-  <p class="switch">Don't have an account? <span onclick="location.href='index2.html'">Register</span></p>
-  <p class="switch">Forgot password? <span onclick="location.href='index3.html'">Reset</span></p>
-
-  <p id="result"></p>
+  <p id="result" style="display: none;"></p>
+  <p id="attemptInfo" class="attempt-info" style="display: none;"></p>
 </div>
 
-<script type="module" src="firebase-config.js"></script>
-<script type="module" src="auth.js"></script>
+<script>
+  // ===== ADMIN LOGIN WITH SECURITY =====
+
+  const MAX_LOGIN_ATTEMPTS = 5;
+  const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+  const ATTEMPT_WINDOW = 5 * 60 * 1000; // 5 minutes
+
+  let ipLoginAttempts = JSON.parse(localStorage.getItem('ipLoginAttempts') || '{}');
+  let blockedIPs = JSON.parse(localStorage.getItem('blockedIPs') || '{}');
+
+  // Generate unique IP identifier
+  function getClientIP() {
+    let clientIP = sessionStorage.getItem('clientIP');
+    if (!clientIP) {
+      clientIP = 'client-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+      sessionStorage.setItem('clientIP', clientIP);
+    }
+    return clientIP;
+  }
+
+  // Check if IP is blocked
+  function isIPBlocked(ip) {
+    if (blockedIPs[ip]) {
+      const blockTime = blockedIPs[ip];
+      if (Date.now() - blockTime < LOCKOUT_DURATION) {
+        return true;
+      } else {
+        delete blockedIPs[ip];
+        delete ipLoginAttempts[ip];
+        localStorage.setItem('blockedIPs', JSON.stringify(blockedIPs));
+        localStorage.setItem('ipLoginAttempts', JSON.stringify(ipLoginAttempts));
+        return false;
+      }
+    }
+    return false;
+  }
+
+  // Record failed login attempt
+  function recordFailedLoginAttempt(ip) {
+    const now = Date.now();
+
+    if (!ipLoginAttempts[ip]) {
+      ipLoginAttempts[ip] = [];
+    }
+
+    // Clean old attempts outside the window
+    ipLoginAttempts[ip] = ipLoginAttempts[ip].filter(t => now - t < ATTEMPT_WINDOW);
+
+    // Add new attempt
+    ipLoginAttempts[ip].push(now);
+
+    // Save to storage
+    localStorage.setItem('ipLoginAttempts', JSON.stringify(ipLoginAttempts));
+
+    // Check if should block this IP
+    if (ipLoginAttempts[ip].length >= MAX_LOGIN_ATTEMPTS) {
+      blockIP(ip);
+      return { blocked: true, attempts: ipLoginAttempts[ip].length };
+    }
+
+    return { blocked: false, attempts: ipLoginAttempts[ip].length, remaining: MAX_LOGIN_ATTEMPTS - ipLoginAttempts[ip].length };
+  }
+
+  // Block an IP
+  function blockIP(ip) {
+    blockedIPs[ip] = Date.now();
+    localStorage.setItem('blockedIPs', JSON.stringify(blockedIPs));
+    logSecurityEvent('IP_BLOCKED', ip, `Too many failed login attempts. IP blocked for 15 minutes.`);
+  }
+
+  // Clear login attempts on successful login
+  function clearLoginAttempts(ip) {
+    delete ipLoginAttempts[ip];
+    localStorage.setItem('ipLoginAttempts', JSON.stringify(ipLoginAttempts));
+    logSecurityEvent('LOGIN_SUCCESS', ip, 'Successful login');
+  }
+
+  // Log security events
+  function logSecurityEvent(eventType, ip, details) {
+    const logs = JSON.parse(localStorage.getItem('securityLogs') || '[]');
+    logs.push({
+      eventType: eventType,
+      ip: ip,
+      details: details,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent
+    });
+
+    // Keep only last 100 logs
+    if (logs.length > 100) {
+      logs.shift();
+    }
+
+    localStorage.setItem('securityLogs', JSON.stringify(logs));
+    console.log(`[${eventType}] ${details}`);
+  }
+
+  // Update attempt display
+  function updateAttemptDisplay(ip) {
+    const counter = document.getElementById('attemptInfo');
+    const attempts = ipLoginAttempts[ip] || [];
+    const remaining = Math.max(0, MAX_LOGIN_ATTEMPTS - attempts.length);
+
+    if (attempts.length > 0 && remaining > 0) {
+      counter.textContent = `⚠️ ${remaining} login attempt${remaining === 1 ? '' : 's'} remaining`;
+      counter.style.display = 'block';
+    } else {
+      counter.style.display = 'none';
+    }
+  }
+
+  // Login form handler
+  document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const clientIP = getClientIP();
+    const username = document.getElementById('adminUsername').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    const resultDiv = document.getElementById('result');
+    const loginBtn = document.getElementById('loginBtn');
+
+    // Check if IP is blocked
+    if (isIPBlocked(clientIP)) {
+      const blockTime = blockedIPs[clientIP];
+      const minutesRemaining = Math.ceil((LOCKOUT_DURATION - (Date.now() - blockTime)) / 60000);
+      resultDiv.textContent = `🚫 Too many failed attempts. Your access is locked for ${minutesRemaining} minute${minutesRemaining === 1 ? '' : 's'}. Please try again later.`;
+      resultDiv.className = 'error';
+      resultDiv.style.display = 'block';
+      loginBtn.disabled = true;
+      document.getElementById('adminUsername').disabled = true;
+      document.getElementById('adminPassword').disabled = true;
+      logSecurityEvent('LOCKOUT_TRIGGERED', clientIP, `Account locked after ${MAX_LOGIN_ATTEMPTS} failed attempts`);
+      return;
+    }
+
+    // Validate credentials
+    const validUsername = 'admin';
+    const validPassword = 'LND544GE@$EJA4APP&(FUCK#%&)';
+
+    resultDiv.textContent = '⏳ Logging in...';
+    resultDiv.className = '';
+    resultDiv.style.display = 'block';
+    loginBtn.disabled = true;
+
+    setTimeout(() => {
+      if (username === validUsername && password === validPassword) {
+        // Successful login
+        clearLoginAttempts(clientIP);
+        resultDiv.textContent = '✅ Login successful! Redirecting to dashboard...';
+        resultDiv.className = 'success';
+
+        // Set admin session
+        localStorage.setItem('adminToken', 'token_' + Math.random().toString(36).substr(2));
+        localStorage.setItem('adminEmail', 'demonalexander526@gmail.com');
+        localStorage.setItem('tokenTimestamp', Date.now());
+        localStorage.setItem('lastLoginTime', new Date().toISOString());
+
+        setTimeout(() => {
+          window.location.href = 'admin-dashboard.html';
+        }, 1500);
+
+      } else {
+        // Failed login
+        const result = recordFailedLoginAttempt(clientIP);
+        updateAttemptDisplay(clientIP);
+
+        if (result.blocked) {
+          resultDiv.textContent = `❌ Too many failed attempts! Your access is locked for 15 minutes.`;
+          resultDiv.className = 'error';
+          loginBtn.disabled = true;
+          document.getElementById('adminUsername').disabled = true;
+          document.getElementById('adminPassword').disabled = true;
+        } else {
+          resultDiv.textContent = `❌ Invalid credentials. ${result.remaining} attempt${result.remaining === 1 ? '' : 's'} remaining.`;
+          resultDiv.className = 'warning';
+          loginBtn.disabled = false;
+          document.getElementById('adminPassword').value = '';
+        }
+
+        logSecurityEvent('FAILED_LOGIN_ATTEMPT', clientIP, `Failed attempt ${result.attempts}/${MAX_LOGIN_ATTEMPTS}`);
+      }
+    }, 800);
+  });
+
+  // Initialize
+  window.addEventListener('load', () => {
+    const clientIP = getClientIP();
+    updateAttemptDisplay(clientIP);
+
+    // Check if already locked out
+    if (isIPBlocked(clientIP)) {
+      const blockTime = blockedIPs[clientIP];
+      const minutesRemaining = Math.ceil((LOCKOUT_DURATION - (Date.now() - blockTime)) / 60000);
+      document.getElementById('result').textContent = `🚫 Your access is locked for ${minutesRemaining} minute${minutesRemaining === 1 ? '' : 's'}.`;
+      document.getElementById('result').className = 'error';
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('loginBtn').disabled = true;
+      document.getElementById('adminUsername').disabled = true;
+      document.getElementById('adminPassword').disabled = true;
+    }
+  });
+</script>
 </body>
 </html>
